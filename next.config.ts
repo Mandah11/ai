@@ -1,8 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  reactCompiler: true,
+  env: {
+    NEW_PUBLIC_HF_TOKEN: process.env.NEW_PUBLIC_HF_TOKEN || "",
+    HF_TOKEN: process.env.HF_TOKEN || "",
+  },
 };
 
 export default nextConfig;
