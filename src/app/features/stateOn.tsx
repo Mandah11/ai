@@ -70,6 +70,7 @@ export const StateOne = ({ setState }: StateOneProps) => {
             >
               Image creator
             </div>
+            <h1>adad</h1>
           </div>
         </div>
         <div className="w-[95%] min-h-55 max-h-fit">
