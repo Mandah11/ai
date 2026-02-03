@@ -57,7 +57,7 @@ export default function Home() {
 
   return (
     <>
-      <div className="flex w-screen justify-end items-end flex-col h-screen">
+      <div className="flex w-screen justify-center items-end flex-col h-screen">
         <div>
           {state === 1 && <StateOne setState={setState} />}
           {state === 2 && <StateTwo setState={setState} />}
