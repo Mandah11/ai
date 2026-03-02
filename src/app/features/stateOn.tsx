@@ -6,17 +6,21 @@ import { StarIcon } from "@/icon/star";
 import { WhiteIconRefresh } from "@/icon/whiterefresh";
 import { Label } from "@radix-ui/react-label";
 import { ChangeEvent, useState } from "react";
+
 type StateOneProps = {
   setState: React.Dispatch<React.SetStateAction<number>>;
 };
+
 type DetectedObject = {
   label: string;
   score: number;
 };
+
 export const StateOne = ({ setState }: StateOneProps) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [result, setResult] = useState([]);
+  const [result, setResult] = useState<DetectedObject[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setSelectedFile(e.target.files[0]);
@@ -28,65 +32,61 @@ export const StateOne = ({ setState }: StateOneProps) => {
     setIsGenerating(true);
     setResult([]);
 
-    const formData = new FormData();
-    formData.append("image", selectedFile);
-    const result = await fetch("/api/object-detection", {
-      method: "POST",
-      body: formData,
-    });
-    const data = await result.json();
-    setResult(data.objects);
-    console.log(data);
-  };
-
-  const handleDeleteFile = () => {
-    setSelectedFile(null);
+    try {
+      const formData = new FormData();
+      formData.append("image", selectedFile);
+      const response = await fetch("/api/object-detection", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await response.json();
+      setResult(data.objects ?? []);
+    } catch (err) {
+      console.error(err);
+      setResult([]);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
-    <div className="w-screen h-screen flex flex-col items-center ">
-      <div className="h-[6%] w-full flex items-center border-b border-gray-300">
-        <div className="w-[9%] h-[50%]  text-[22px] font-semibold flex justify-center items-center">
-          AI tools
-        </div>
+    <div className="w-screen min-h-screen flex flex-col items-center">
+      <div className="w-full h-14 flex items-center border-b border-gray-300 px-8">
+        <div className="text-[22px] font-semibold">AI tools</div>
       </div>
-      <div className="w-[40%] h-full  ">
-        <div className="w-full h-[9%]  flex items-center">
-          <div className="w-[60%] rounded-lg bg-[#f4f4f5] flex h-[42%] items-center justify-around">
-            <div className="w-[26%] rounded-lg bg-white text-[16px] h-[70%] flex justify-center items-center">
+
+      <div className="w-full max-w-[900px] flex-1 flex flex-col gap-6 py-6 px-4">
+        <div className="w-full flex items-center">
+          <div className="w-full max-w-[620px] rounded-lg bg-[#f4f4f5] p-1 flex items-center gap-1">
+            <div className="flex-1 rounded-lg bg-white text-[16px] h-9 flex justify-center items-center whitespace-nowrap">
               Image analysis
             </div>
             <div
-              className="w-[40%] rounded-lg text-[#71717A] text-[16px] h-[70%] flex justify-center items-center"
-              onClick={() => {
-                setState(2);
-              }}
+              className="flex-1 rounded-lg text-[#71717A] text-[16px] h-9 flex justify-center items-center whitespace-nowrap cursor-pointer"
+              onClick={() => setState(2)}
             >
               Ingredient recognition
             </div>
             <div
-              className="w-[26%] rounded-lg text-[#71717A] text-[16px] h-[70%] flex justify-center items-center"
+              className="flex-1 rounded-lg text-[#71717A] text-[16px] h-9 flex justify-center items-center whitespace-nowrap cursor-pointer"
               onClick={() => setState(3)}
             >
               Image creator
             </div>
           </div>
         </div>
-        <div className="w-[95%] min-h-55 max-h-fit">
-          <div className=" flex  h-11  w-full justify-between ">
-            <div className="h-full flex gap-3">
-              <div className="h-9  flex items-center">
-                <StarIcon />
-              </div>
-              <div className="text-[25px] flex font-medium ">
-                Image analysis
-              </div>
+
+        <div className="w-full flex flex-col gap-3">
+          <div className="w-full flex justify-between items-start gap-3">
+            <div className="flex gap-3 items-center">
+              <StarIcon />
+              <div className="text-[25px] font-medium">Image analysis</div>
             </div>
 
             <button
-              className={`h-full w-[7%] rounded-md border border-gray-300 flex justify-center items-center ${
-                result.length === 0 ? "bg-gray-50" : "bg-black text-white "
-              } `}
+              className={`h-10 w-12 rounded-md border border-gray-300 flex justify-center items-center ${
+                result.length === 0 ? "bg-gray-50" : "bg-black text-white"
+              }`}
               onClick={() => {
                 setSelectedFile(null);
                 setIsGenerating(false);
@@ -96,20 +96,20 @@ export const StateOne = ({ setState }: StateOneProps) => {
               {result.length === 0 ? <RestartIcon /> : <WhiteIconRefresh />}
             </button>
           </div>
-          <div className="h-17 flex items-center text-[18px] ">
+
+          <div className="text-[18px]">
             Upload a food photo, and AI will detect the ingredients.
           </div>
-          <div className="min-h-27 max-h-fit  flex w-full flex-col justify-between">
+
+          <div className="w-full flex flex-col gap-3">
             {selectedFile ? (
-              <div className="w-80 h-50 flex justify-center items-center rounded-lg border">
-                <div className=" h-50 w-80 flex justify-end items-end mb-8 mr-8  absolute">
-                  <button
-                    className="h-8 w-8 bg-white absolute flex justify-center items-center rounded-md"
-                    onClick={handleDeleteFile}
-                  >
-                    <DeleteIcon />
-                  </button>
-                </div>
+              <div className="relative w-80 h-50 flex justify-center items-center rounded-lg border">
+                <button
+                  className="h-8 w-8 bg-white absolute top-3 right-3 flex justify-center items-center rounded-md"
+                  onClick={() => setSelectedFile(null)}
+                >
+                  <DeleteIcon />
+                </button>
                 <img
                   className="w-[96%] h-[94%] object-cover rounded-lg"
                   src={URL.createObjectURL(selectedFile)}
@@ -117,12 +117,12 @@ export const StateOne = ({ setState }: StateOneProps) => {
                 />
               </div>
             ) : (
-              <div className="h-13">
+              <div className="w-full max-w-[360px]">
                 <Label htmlFor="file-input">
-                  <div className="border border-gray-200 rounded-md h-[80%] flex items-center">
+                  <div className="border border-gray-200 rounded-md h-10 flex items-center cursor-pointer">
                     <p className="text-[18px] ml-1">
                       <strong className="px-3">Choose File</strong>
-                      JNG, PNG
+                      JPG, PNG
                     </p>
                     <input
                       type="file"
@@ -132,12 +132,13 @@ export const StateOne = ({ setState }: StateOneProps) => {
                       onChange={handleFileChange}
                     />
                   </div>
-                </Label>{" "}
+                </Label>
               </div>
-            )}{" "}
-            <div className="w-full h-11 flex justify-end ">
+            )}
+
+            <div className="w-full flex justify-end">
               <button
-                className={`h-full text-white ] w-[13%] rounded-md ${
+                className={`h-10 text-white px-4 rounded-md ${
                   !selectedFile || isGenerating ? "bg-[#8f8f92]" : "bg-black"
                 }`}
                 disabled={!selectedFile || isGenerating}
@@ -148,37 +149,32 @@ export const StateOne = ({ setState }: StateOneProps) => {
             </div>
           </div>
         </div>
-        <div className="min-h-19 w-[95%] max-h-fit mt-3 flex justify-around flex-col ">
-          <div className="w-full h-15 flex gap-3 items-center mb-1 ">
-            <div className="h-[75%] flex items-center">
-              <FolderIcon />
-            </div>
-            <div className="text-[25px] flex font-medium ">
-              Here is the summary
-            </div>
+
+        <div className="w-full flex flex-col gap-3 pt-2">
+          <div className="w-full h-11 flex gap-3 items-center">
+            <FolderIcon />
+            <div className="text-[25px] flex font-medium">Here is the summary</div>
           </div>
 
-          <div>
-            {result.length > 0 ? (
-              <div className="h-fit border border-gray-300 rounded-md">
-                {result.map((obj: DetectedObject, index: number) => (
-                  <div
-                    key={index}
-                    className="text-[18px] px-3 text-gray-500 h-10 rounded-md flex items-center gap-2.5"
-                  >
-                    <strong>{index + 1}. </strong>
-                    {obj.label} - {(obj.score * 100).toFixed(2)}%
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-[18px] text-gray-500 h-10 rounded-md border px-3 flex items-center">
-                {isGenerating
-                  ? "Analyzing image, please wait..."
-                  : "First, enter your image to recognize an ingredients."}
-              </div>
-            )}
-          </div>
+          {result.length > 0 ? (
+            <div className="border border-gray-300 rounded-md">
+              {result.map((obj, index) => (
+                <div
+                  key={index}
+                  className="text-[18px] px-3 text-gray-500 h-10 rounded-md flex items-center gap-2.5"
+                >
+                  <strong>{index + 1}.</strong>
+                  {obj.label} - {(obj.score * 100).toFixed(2)}%
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-[18px] text-gray-500 h-10 rounded-md border px-3 flex items-center">
+              {isGenerating
+                ? "Analyzing image, please wait..."
+                : "First, enter your image to recognize ingredients."}
+            </div>
+          )}
         </div>
       </div>
     </div>
